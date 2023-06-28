@@ -4,7 +4,6 @@ version = "0.1.0"
 description = ""
 authors = ["Lucas Parzianello <lucaspar@users.noreply.github.com>"]
 readme = "README.md"
-packages = [{include = "small_benchmarks"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"
