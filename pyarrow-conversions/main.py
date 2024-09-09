@@ -1,4 +1,5 @@
 """Benchmark the conversion of pyarrow arrays to polars, numpy, and lists."""
+
 import time
 from typing import Callable
 
@@ -13,21 +14,22 @@ def get_memory_usage() -> float:
     """Returns the memory usage of the current process, in bytes."""
 
     process = psutil.Process()
-    physical_mem = process.memory_info().rss
+    return process.memory_info().rss
     # virtual_mem = process.memory_info().vms
-    return physical_mem
 
 
 def pretty_memory_usage(mem_bytes: float) -> str:
     """Pretty prints the memory usage in KB, MB, GB, etc."""
-    unit = "B"
-    for unit in ["", "K", "M", "G", "T", "P"]:
-        if mem_bytes < 1_024:
+    magnitude_step: int = 1_024
+    final_unit: str = "B"
+    for current_unit in ["", "K", "M", "G", "T", "P"]:
+        if mem_bytes < magnitude_step:
+            final_unit = current_unit
             break
-        mem_bytes /= 1_024
+        mem_bytes /= magnitude_step
     # round to two decimal places
-    mem_bytes = round(mem_bytes, 2)
-    return f"{mem_bytes} {unit}B"
+    mem_bytes = round(mem_bytes, ndigits=2)
+    return f"{mem_bytes} {final_unit}B"
 
 
 def measure_memory(func: Callable) -> Callable:
@@ -38,7 +40,8 @@ def measure_memory(func: Callable) -> Callable:
         res = func(*args, **kwargs)
         memory_increase = get_memory_usage() - current_memory
         # to make sure res is actually in memory
-        assert res is not None and len(res) > 0, "Result is empty"
+        assert res is not None, "Result is None"
+        assert len(res) > 0, "Result is empty"
         print(f"\tMemory increase: {pretty_memory_usage(memory_increase)}")
         return res
 
@@ -48,12 +51,13 @@ def measure_memory(func: Callable) -> Callable:
 @measure_memory
 def setup(arrow_size: int = 50_000_000, target_type: type = float) -> pa.Array:
     """Creates a pyarrow array of the given size."""
-    if target_type == float:
+    if target_type is float:
         arr = pa.array(np.random.rand(arrow_size))
-    elif target_type == int:
+    elif target_type is int:
         arr = pa.array(np.random.randint(0, 100, arrow_size))
     else:
-        raise ValueError(f"Unknown type: {target_type}")
+        msg = f"Unknown type: {target_type}"
+        raise ValueError(msg)
 
     return arr
 
@@ -97,22 +101,22 @@ def benchmark(name: str, callback: Callable, kwargs: dict):
     start = time.time()
     callback(**kwargs)
     print(
-        f"\tConversion time from pyarrow to {name}:\t{time.time() - start:.4f} seconds"
+        f"\tConversion time from pyarrow to {name}:\t{time.time() - start:.4f} seconds",
     )
 
 
-def main():
+def main() -> None:
     """Run the benchmark for each conversion."""
 
-    arr = setup(arrow_size=50_000_000, target_type=float)
+    arr = setup(arrow_size=100_000_000, target_type=float)
     print(f"Created array with size: {len(arr):,} and type {arr.type}")
     kwargs = {"arr": arr}
 
     tests = [
-        dict(name="polars", callback=convert_to_polars, kwargs=kwargs),
-        dict(name="numpy", callback=convert_to_numpy, kwargs=kwargs),
-        dict(name="list", callback=convert_to_list, kwargs=kwargs),
-        dict(name="pandas", callback=convert_to_pandas, kwargs=kwargs),
+        {"name": "polars", "callback": convert_to_polars, "kwargs": kwargs},
+        {"name": "numpy", "callback": convert_to_numpy, "kwargs": kwargs},
+        {"name": "list", "callback": convert_to_list, "kwargs": kwargs},
+        {"name": "pandas", "callback": convert_to_pandas, "kwargs": kwargs},
     ]
 
     for test in tests:
