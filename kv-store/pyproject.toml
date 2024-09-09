@@ -1,17 +1,7 @@
-[tool.poetry]
-name = "kv-store-benchmarks"
-version = "0.1.0"
-description = ""
-authors = ["Lucas Parzianello <lucaspar@users.noreply.github.com>"]
-readme = "README.md"
-
-[tool.poetry.dependencies]
-python = "^3.10"
-pandas = "^1.5.3"
-numpy = "^1.24.2"
-loguru = "^0.6.0"
-
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+[project]
+    authors      = [{ name = "Lucas Parzianello" }]
+    dependencies = ["loguru>=0.7.2", "numpy>=2.1.1", "pandas>=2.2.2"]
+    description  = ""
+    name         = "kv-store-benchmarks"
+    readme       = "README.md"
+    version      = "0.1.0"

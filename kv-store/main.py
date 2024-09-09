@@ -1,35 +1,33 @@
 """Benchmarks different key-value store approaches."""
-import os
+
 import shelve
 import time
+from pathlib import Path
 
 import loguru
 
 log = loguru.logger
 
 
-def main():
-
+def main() -> None:
+    """Benchmarking main function."""
     num_iter = 1_000_000
-    dir_path = "data"
-    os.makedirs(dir_path, exist_ok=True)
-    log.info("Benchmarking for {:,} iterations".format(num_iter))
-
+    dir_path = Path("data")
+    dir_path.mkdir(parents=True, exist_ok=True)
+    log.info(f"Benchmarking for {num_iter:,} iterations")
     benchmark_shelve(num_iter=num_iter, dir_path=dir_path)
 
 
-def log_time_delta(tic: float):
+def log_time_delta(tic: float) -> None:
     """Logs time delta."""
-    log.info("\t{:.4f} s".format(time.time() - tic))
+    log.info(f"\t{time.time() - tic:.4f} s")
 
 
-def benchmark_shelve(num_iter: int, dir_path: str = "data"):
+def benchmark_shelve(num_iter: int, dir_path: Path = Path("data")) -> None:
     """Benchmarks shelve key-value store."""
-
-    db_name = os.path.join(dir_path, "shelve")
+    db_name = dir_path / "shelve"
     num_outer_loops = 2
 
-    # initialize
     log.debug("Initializing shelve")
     with shelve.open(db_name, flag="c") as sdb:
         for i in range(num_iter):
